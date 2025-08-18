@@ -5,15 +5,20 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gm-connect"
 version = "0.1.0"
-description = "A Python module + CLI to read, send, delete, and organize emails"
+description = "A Python package to send, read, and manage Gmail via IMAP/SMTP with CLI support."
+readme = "README.md"
 authors = [
     { name="Nitesh Mhatre", email="n.mhatre90@gmail.com" }
 ]
 license = { text = "MIT" }
 requires-python = ">=3.8"
 dependencies = [
-    "typer>=0.9.0",
+    "python-dotenv",
 ]
 
-[project.scripts]
-gmconnect = "gmconnect.cli:app"
+[project.urls]
+Homepage = "https://github.com/nitesh-mhatre/gm-connect"
+Issues = "https://github.com/nitesh-mhatre/gm-connect/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
