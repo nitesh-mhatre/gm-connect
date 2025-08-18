@@ -10,7 +10,6 @@ authors = [
     { name="Nitesh Mhatre", email="n.mhatre90@gmail.com" }
 ]
 license = { text = "MIT" }
-readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
     "typer>=0.9.0",
