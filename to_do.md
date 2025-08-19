@@ -1,14 +1,14 @@
 # 📌 Email Management Module - TODO
 
 ## ✅ Phase 1: Core Features (MVP)
-- [ ] 🟢 **Read Emails**
+- [ x ] 🟢 **Read Emails**
   - Connect via IMAP/POP3
   - Fetch unread/all emails
   - Parse subject, sender, receiver, body, attachments
-- [ ] 🟢 **Send Emails**
+- [ x ] 🟢 **Send Emails**
   - Send plain text emails
   - Send emails with attachments
-- [ ] 🟢 **Delete Emails**
+- [ x ] 🟢 **Delete Emails**
   - Delete single email by ID
   - Bulk delete (older than X days, from specific sender)
 - [ ] 🟢 **Organize / Tag Emails**
@@ -49,20 +49,20 @@
 ---
 
 ## 🔧 Non-Functional Requirements
-- [ ] 🟢 Secure credential storage (`keyring`, `.env`)
-- [ ] 🟢 Config-driven (JSON/YAML for IMAP/SMTP settings)
+- [ x ] 🟢 Secure credential storage (`keyring`, `.env`)
+- [ x ] 🟢 Config-driven (JSON/YAML for IMAP/SMTP settings)
 - [ ] 🟡 Logging & error handling
 - [ ] 🟡 Scalable (handle large inboxes with pagination)
 
 ---
 
 ## 📦 Packaging & Distribution
-- [ ] 🟢 Create `pyproject.toml` with **Poetry / Hatch / setuptools**
+- [ x ] 🟢 Create `pyproject.toml` with **Poetry / Hatch / setuptools**
 - [ ] 🟢 Package should be **installable from pip**
 - [ ] 🟢 Provide importable module:
 
   ```python
-  from emailmgr import EmailClient
+  from gm_connect import EmailClient
 
   client = EmailClient()
   client.read_emails()
