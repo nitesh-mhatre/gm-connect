@@ -1,4 +1,4 @@
-from .client import EmailClient
-
-__version__ = "0.1.0"
-__all__ = ["EmailClient"]
+__version__ = "B0.1.0"
+from .manager import EmailManager
+from .sender import EmailSender
+from .reader import EmailReader

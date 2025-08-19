@@ -1,7 +1,9 @@
 from gm_connect.manager import EmailManager
+from gm_connect.config import Config
 
 def main():
-    manager = EmailManager()
+    configuration = Config(env_file="/home/nitesh/repos/gm-connect/gm-connect/.env").load()
+    manager = EmailManager(config=configuration)
 
     # ✅ Send test email
     # print("Sending test email...")
