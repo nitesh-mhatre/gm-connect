@@ -25,7 +25,11 @@ def main():
         uid = e['uid']
 
     print('deleting mails................')
-    print(manager.bulk_delete(days_old=1))
+    print(manager.bulk_delete(
+        #from_sender='mr.psycho.email@gmail.com',
+        days_old=-1,
+        folder =  "INBOX"
+        ))
 
 
     #print(manager.move_email(uid, "[Gmail]/Spam"))

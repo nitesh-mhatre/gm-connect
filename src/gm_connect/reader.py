@@ -104,13 +104,31 @@ class EmailReader:
         return f"Email {uid} deleted ✅"
 
     #Bulk delete
-    def bulk_delete(self, days_old=None, from_sender=None, folder="INBOX"):
+    def bulk_delete(self, days_old=None, from_sender=None, folder="INBOX", batch_size: int = 50):
+        """
+        Bulk delete emails based on criteria.
+        Much faster than deleting one by one.
+
+        Args:
+            days_old (int): Delete emails older than X days
+            from_sender (str): Delete emails from this sender
+            folder (str): Mailbox folder
+                "[Gmail]/All Mail" (everything)
+                "[Gmail]/Trash" (deleted items)
+                "[Gmail]/Spam"
+                "[Gmail]/Sent Mail"
+                "INBOX"
+
+        Returns:
+            str: Result message
+        """
         self.connect()
-        self.conn.select(folder)
+        self.conn.select('INBOX' if folder == 'INBOX' else f'"{folder}"')
+        #self.conn.select(folder)
 
         search_criteria = []
 
-        if days_old:
+        if days_old is not None:
             date_cutoff = (datetime.now() - timedelta(days=days_old)).strftime("%d-%b-%Y")
             search_criteria.append(f"BEFORE {date_cutoff}")
 
@@ -121,23 +139,25 @@ class EmailReader:
             return "⚠️ No criteria specified for bulk delete."
 
         search_query = " ".join(search_criteria)
-        typ, data = self.conn.search(None, search_query)
-        count = 0
-        if data and data[0]:
-            uids = data[0].split()
-            for uid in uids:
-                self.conn.store(uid, '+FLAGS', r'(\Deleted)')
-                if count >= 10:
-                    self.conn.expunge()
-                    count = 0
-                else:
-                    count += 1
-
-            self.conn.expunge()
-            return f"Deleted {len(uids)} emails matching criteria ✅"
-        else:
+        typ, data = self.conn.uid("search", None, search_query)
+        if typ != "OK" or not data[0]:
             return "No emails found matching criteria."
-    
+
+        uids = data[0].split()
+        total = len(uids)
+
+        # Delete in batches
+        for i in range(0, total, batch_size):
+            batch = uids[i:i+batch_size]
+            uid_set = b",".join(batch)
+            self.conn.uid("store", uid_set, "+FLAGS", r"(\Deleted)")
+            self.conn.expunge()  # expunge after each batch (keeps memory low)
+            print(f"✅ Deleted {i+batch_size} emails matching criteria")
+
+        return f"✅ Deleted {total} emails matching criteria"
+
+
+
 
     def move_email(self, uid, target_folder, source_folder="INBOX"):
         self.connect()
