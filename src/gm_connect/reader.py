@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import imaplib
 import email
 from email.header import decode_header
@@ -45,22 +46,22 @@ class EmailReader:
             limit (int): Number of emails to fetch
 
         Returns:
-            List[Dict]: List of email details
+            List[Dict]: List of email details (with UID)
         """
         if not self.conn:
             self.connect()
 
         self.conn.select(folder)
-        status, data = self.conn.search(None, "ALL")
+        status, data = self.conn.uid("search", None, "ALL")
         if status != "OK":
             return []
 
-        email_ids = data[0].split()
-        latest_ids = email_ids[-limit:]
+        email_uids = data[0].split()
+        latest_uids = email_uids[-limit:]
 
         emails = []
-        for eid in reversed(latest_ids):
-            status, msg_data = self.conn.fetch(eid, "(RFC822)")
+        for uid in reversed(latest_uids):
+            status, msg_data = self.conn.uid("fetch", uid, "(RFC822)")
             if status != "OK":
                 continue
 
@@ -85,6 +86,7 @@ class EmailReader:
                 snippet = msg.get_payload(decode=True).decode(errors="ignore")[:200]
 
             emails.append({
+                "uid": uid.decode(),  # ✅ add UID here
                 "subject": subject,
                 "from": from_,
                 "date": date_,
@@ -93,6 +95,67 @@ class EmailReader:
 
         return emails
 
+
+    def delete_email(self, uid, folder="INBOX"):
+        self.connect()
+        self.conn.select(folder)
+        self.conn.store(uid, '+FLAGS', r'(\Deleted)')
+        self.conn.expunge()
+        return f"Email {uid} deleted ✅"
+
+    #Bulk delete
+    def bulk_delete(self, days_old=None, from_sender=None, folder="INBOX"):
+        self.connect()
+        self.conn.select(folder)
+
+        search_criteria = []
+
+        if days_old:
+            date_cutoff = (datetime.now() - timedelta(days=days_old)).strftime("%d-%b-%Y")
+            search_criteria.append(f"BEFORE {date_cutoff}")
+
+        if from_sender:
+            search_criteria.append(f'FROM "{from_sender}"')
+
+        if not search_criteria:
+            return "⚠️ No criteria specified for bulk delete."
+
+        search_query = " ".join(search_criteria)
+        typ, data = self.conn.search(None, search_query)
+        count = 0
+        if data and data[0]:
+            uids = data[0].split()
+            for uid in uids:
+                self.conn.store(uid, '+FLAGS', r'(\Deleted)')
+                if count >= 10:
+                    self.conn.expunge()
+                    count = 0
+                else:
+                    count += 1
+
+            self.conn.expunge()
+            return f"Deleted {len(uids)} emails matching criteria ✅"
+        else:
+            return "No emails found matching criteria."
+    
+
+    def move_email(self, uid, target_folder, source_folder="INBOX"):
+        self.connect()
+        self.conn.select(source_folder)
+
+        # Copy email to target
+        result = self.conn.copy(uid, target_folder)
+        if result[0] != "OK":
+            return f"❌ Failed to move {uid} to {target_folder}"
+
+        # Mark original as deleted
+        self.conn.store(uid, '+FLAGS', r'(\Deleted)')
+        self.conn.expunge()
+        return f"Email {uid} moved to {target_folder} ✅"
+    
+    
+    
+    
     def logout(self):
         """Close IMAP connection."""
         if self.conn:

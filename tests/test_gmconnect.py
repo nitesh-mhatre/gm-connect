@@ -18,13 +18,22 @@ def main():
 
     # ✅ Fetch latest emails
     print("\nFetching latest emails...")
-    emails = manager.get_recent_emails(limit=100)
+    emails = manager.get_recent_emails(limit=1)
     for e in emails:
-        print(f"{e['date']} | {e['from']} | {e['subject']}")
-        print("Snippet:", e['snippet'])
+        print(f"{e}")
         print("-" * 60)
+        uid = e['uid']
 
+    print('deleting mails................')
+    print(manager.bulk_delete(days_old=1))
+
+
+    #print(manager.move_email(uid, "[Gmail]/Spam"))
+    
+    
     manager.close()
+
+
 
 if __name__ == "__main__":
     main()
